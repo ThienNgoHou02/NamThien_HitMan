@@ -8,6 +8,7 @@ public class Pool
     private GameEntity _prefab;
 
     private Queue<GameEntity> _Pool = new Queue<GameEntity>();
+    List<GameEntity> _Alive = new List<GameEntity>();
     public void PreLoad(Transform parent, GameEntity prefab, int amount)
     {
         _parentTF = parent;
@@ -23,6 +24,7 @@ public class Pool
         if (entity)
         {
             _Pool.Enqueue(entity);
+            _Alive.Remove(entity);
             entity.gameObject.SetActive(false);
         }
     }
@@ -37,8 +39,23 @@ public class Pool
         {
             entity = _Pool.Dequeue();
         }
+        _Alive.Add(entity);
         entity.TF.SetPositionAndRotation(position, rotation);
         entity.gameObject.SetActive(true);
         return entity;
+    }
+    public void Collect()
+    {
+        while (_Alive.Count > 0)
+        {
+            Push(_Alive[0]);
+        }
+    }
+    public void Release()
+    {
+        Collect();
+        while (_Pool.Count > 0)
+            GameObject.Destroy(_Pool.Dequeue().gameObject);
+        _Pool.Clear();
     }
 }

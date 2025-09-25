@@ -39,4 +39,34 @@ public class MasterPool
         }
         return _PoolMaster[tag].Pop(position, rotation) as T;
     }
+    public static void Collect(GameEnities poolType)
+    {
+        if (!_PoolMaster.ContainsKey(poolType))
+        {
+            Debug.LogError($"{poolType} IS NOT PRELOAD!!");
+        }
+        _PoolMaster[poolType].Collect();
+    }
+    public static void CollectAll()
+    {
+        foreach (var pool in _PoolMaster.Values)
+        {
+            pool.Collect();
+        }
+    }
+    public static void Release(GameEnities poolType)
+    {
+        if (!_PoolMaster.ContainsKey(poolType))
+        {
+            Debug.LogError($"{poolType} IS NOT PRELOAD!!");
+        }
+        _PoolMaster[poolType].Release();
+    }
+    public static void ReleaseAll()
+    {
+        foreach (var pool in _PoolMaster.Values)
+        {
+            pool.Release();
+        }
+    }
 }

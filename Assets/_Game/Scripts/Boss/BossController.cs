@@ -43,7 +43,7 @@ public class BossController : Character
         _SpecialState = new BossSpecial(_animator, _characterController, _weapon, _approachSpeed);
         _DieState = new BossDie(_animator);
 
-        _characterATK = 100 * Mathf.Pow((1f + 0.2f), (_characterLevel - 1));
+        _characterATK = 30 * Mathf.Pow((1f + 0.2f), (_characterLevel - 1));
         _characterMaxHP = 500 * Mathf.Pow((1f + 0.15f), (_characterLevel - 1));
 
         _weapon.DAMAGE = _characterATK;

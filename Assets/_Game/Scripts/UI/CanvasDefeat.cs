@@ -25,6 +25,7 @@ public class CanvasDefeat : UICanvas
     }
     private void BackToMenu()
     {
+        MasterPool.ReleaseAll();
         SceneManager.LoadScene("StartScene");
     }
     public void Reward(int reward, int enemyDefeat)

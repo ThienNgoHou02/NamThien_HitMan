@@ -34,10 +34,11 @@ public class LevelManager : Singleton<LevelManager>
     private int _rewardMoney = 0;
     private int _enemyLeftAmount;
 
+    private bool _canRevive;
     Coroutine _crtResetTimeScale;
     private void Awake()
     {
-
+        _canRevive = true;
     }
     private void Start()
     {
@@ -51,7 +52,6 @@ public class LevelManager : Singleton<LevelManager>
             _map._leftUpPointTF, _map._rightUpPointTF, _map._leftDownPointTF, _map._rightDownPointTF
         };
         _gamePlayCanvas = UIManager.Instance.OpenUI<CanvasGameplay>();
-        _gamePlayCanvas.SetEnemyAlive(_enemyLeftAmount);
 
         PlayerController _player = Instantiate(_playerPrefab, _characterParentTF);
         _player.transform.SetPositionAndRotation(_map._playerPointTF.position, Quaternion.identity);
@@ -78,41 +78,48 @@ public class LevelManager : Singleton<LevelManager>
             enemy._characterLevel = _enemyOnLevel[i]._enemyLevel;
             enemy._OnHealthChanged += _gamePlayCanvas.SetEnemyHealth;
             enemy._OnRivie += Revive;
-            _currentAlives++;
+            _currentAlives += 1;
+            _enemyLeftAmount -= 1;
+
         }
+        _gamePlayCanvas.SetEnemyAlive(_enemyLeftAmount + _currentAlives);
     }
     private void Revive(EnemyController enemy)
     {
-        _enemyLeftAmount -= 1;
         _currentAlives -= 1;
-        _gamePlayCanvas.SetEnemyAlive(_enemyLeftAmount);
 
-        if (_currentAlives + _enemyLeftAmount <= 0)
-        {
-            _gamePlayCanvas.DisableEnemyHB();
-            Boss(); 
-            return;
-        }
         enemy._OnHealthChanged -= _gamePlayCanvas.SetEnemyHealth;
         enemy._OnRivie -= Revive;
-        
-        Vector3 pos = enemy.TF.position;
-        pos.y = 1f;
-        SpawnItem(pos);
-
-
-        if (_enemyLeftAmount >= 1 && _currentAlives < _maxOnMapEnemy)
+        if (_canRevive)
         {
-            _pointIndex += 1;
-            if (_pointIndex >= 4)
+            if (_currentAlives <= 0 && _enemyLeftAmount <= 0)
             {
-                _pointIndex = 0;
+                _gamePlayCanvas.DisableEnemyHB();
+                Boss();
+                _canRevive = false;
+                return;
             }
-            EnemyController e = MasterPool.Pop<EnemyController>(enemy._gameEntity, _revivePoints[_pointIndex].position, Quaternion.identity);
-            e._OnHealthChanged += _gamePlayCanvas.SetEnemyHealth;
-            e._OnRivie += Revive;
-            _currentAlives += 1;
+        
+            Vector3 pos = enemy.TF.position;
+            pos.y = 1f;
+            SpawnItem(pos);
+
+
+            if (_enemyLeftAmount > 0 && _currentAlives < _maxOnMapEnemy)
+            {
+                _currentAlives += 1;
+                _enemyLeftAmount -= 1;
+                _pointIndex += 1;
+                if (_pointIndex >= 4)
+                {
+                    _pointIndex = 0;
+                }
+                EnemyController e = MasterPool.Pop<EnemyController>(enemy._gameEntity, _revivePoints[_pointIndex].position, Quaternion.identity);
+                e._OnHealthChanged += _gamePlayCanvas.SetEnemyHealth;
+                e._OnRivie += Revive;
+            }
         }
+        _gamePlayCanvas.SetEnemyAlive(_enemyLeftAmount + _currentAlives);
     }
     private void Boss()
     {
